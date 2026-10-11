@@ -7,8 +7,8 @@ venv/
 env/
 
 .chroma/
+chroma_db/
 chroma/
-data/vendor_catalog.json
 
 __pycache__/
 **/__pycache__/

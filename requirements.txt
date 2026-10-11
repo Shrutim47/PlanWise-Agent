@@ -2,7 +2,8 @@ crewai>=0.80.0
 crewai-tools>=0.14.0
 langchain>=0.2.0
 langchain-community>=0.2.0
-chromadb>=0.5.0
+chromadb==1.1.1
 pydantic>=2.7.0
 streamlit>=1.35.0
 python-dotenv>=1.0.0
+pytest>=8.0.0,<9.0.0

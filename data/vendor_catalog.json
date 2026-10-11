@@ -1,0 +1,889 @@
+{
+    "vendors":  [
+                    {
+                        "id":  "V01",
+                        "name":  "The Nest Bengaluru",
+                        "category":  "venues",
+                        "location":  "Bengaluru",
+                        "locality":  "Indiranagar",
+                        "capacity":  180,
+                        "cost_per_day":  45000,
+                        "type":  "indoor",
+                        "rating":  4.7,
+                        "amenities":  [
+                                          "Stage",
+                                          "Wi-Fi",
+                                          "Parking",
+                                          "AC",
+                                          "Projector"
+                                      ],
+                        "contact":  "+91 98765 11201 | events@thenestblr.in",
+                        "website":  "https://thenestblr.in",
+                        "description":  "Contemporary indoor venue with flexible seating and premium AV support for team events and launch nights.",
+                        "tags":  [
+                                     "corporate",
+                                     "indoor",
+                                     "premium"
+                                 ],
+                        "search_text":  "The Nest Bengaluru located in Indiranagar, Bengaluru. Type: indoor. Capacity: 180 guests. Cost: ₹45000 per day. Amenities: [\u0027Stage\u0027, \u0027Wi-Fi\u0027, \u0027Parking\u0027, \u0027AC\u0027, \u0027Projector\u0027].",
+                        "suitable_for":  [
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Formal / AV-ready indoor venue"
+                    },
+                    {
+                        "id":  "V02",
+                        "name":  "Skyline Terrace",
+                        "category":  "venues",
+                        "location":  "Bengaluru",
+                        "locality":  "Koramangala",
+                        "capacity":  260,
+                        "cost_per_day":  68000,
+                        "type":  "rooftop",
+                        "rating":  4.8,
+                        "amenities":  [
+                                          "Rooftop",
+                                          "Lighting",
+                                          "Parking",
+                                          "DJ Booth",
+                                          "Open Bar"
+                                      ],
+                        "contact":  "+91 99887 45512 | bookings@skylineterrace.in",
+                        "website":  "https://skylineterrace.in",
+                        "description":  "Popular rooftop venue with skyline views, premium lighting, and flexible dinner or networking layouts.",
+                        "tags":  [
+                                     "rooftop",
+                                     "evening",
+                                     "social"
+                                 ],
+                        "search_text":  "Skyline Terrace located in Koramangala, Bengaluru. Type: rooftop. Capacity: 260 guests. Cost: ₹68000 per day. Amenities: [\u0027Rooftop\u0027, \u0027Lighting\u0027, \u0027Parking\u0027, \u0027DJ Booth\u0027, \u0027Open Bar\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering"
+                                         ],
+                        "vibe":  "Celebration / Rooftop Lounge"
+                    },
+                    {
+                        "id":  "V03",
+                        "name":  "Whitefield Courtyard",
+                        "category":  "venues",
+                        "location":  "Bengaluru",
+                        "locality":  "Whitefield",
+                        "capacity":  340,
+                        "cost_per_day":  92000,
+                        "type":  "outdoor",
+                        "rating":  4.6,
+                        "amenities":  [
+                                          "Garden",
+                                          "Tent",
+                                          "Stage",
+                                          "Parking",
+                                          "Catering Support"
+                                      ],
+                        "contact":  "+91 98112 44321 | hello@whitefieldcourtyard.in",
+                        "website":  "https://whitefieldcourtyard.in",
+                        "description":  "Garden venue with ambient lighting and weatherproof tenting for medium to large corporate gatherings.",
+                        "tags":  [
+                                     "outdoor",
+                                     "garden",
+                                     "large"
+                                 ],
+                        "search_text":  "Whitefield Courtyard located in Whitefield, Bengaluru. Type: outdoor. Capacity: 340 guests. Cost: ₹92000 per day. Amenities: [\u0027Garden\u0027, \u0027Tent\u0027, \u0027Stage\u0027, \u0027Parking\u0027, \u0027Catering Support\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "tech fest",
+                                             "corporate gathering"
+                                         ],
+                        "vibe":  "Flexible / Garden Stage"
+                    },
+                    {
+                        "id":  "V04",
+                        "name":  "Eco Garden Hall",
+                        "category":  "venues",
+                        "location":  "Bengaluru",
+                        "locality":  "Electronic City",
+                        "capacity":  160,
+                        "cost_per_day":  38000,
+                        "type":  "indoor",
+                        "rating":  4.4,
+                        "amenities":  [
+                                          "AC",
+                                          "Projector",
+                                          "Reception",
+                                          "Parking",
+                                          "Cafeteria"
+                                      ],
+                        "contact":  "+91 98990 44099 | hello@ecogardenhall.in",
+                        "website":  "https://ecogardenhall.in",
+                        "description":  "Value-focused indoor venue in Electronic City with a professional conference setup and easy access route.",
+                        "tags":  [
+                                     "budget",
+                                     "conference",
+                                     "corporate"
+                                 ],
+                        "search_text":  "Eco Garden Hall located in Electronic City, Bengaluru. Type: indoor. Capacity: 160 guests. Cost: ₹38000 per day. Amenities: [\u0027AC\u0027, \u0027Projector\u0027, \u0027Reception\u0027, \u0027Parking\u0027, \u0027Cafeteria\u0027].",
+                        "suitable_for":  [
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Professional / Conference Hall"
+                    },
+                    {
+                        "id":  "V05",
+                        "name":  "Rahatni Open Lawn",
+                        "category":  "venues",
+                        "location":  "Pune",
+                        "locality":  "Rahatni",
+                        "capacity":  220,
+                        "cost_per_day":  47000,
+                        "type":  "outdoor",
+                        "rating":  4.3,
+                        "amenities":  [
+                                          "Garden",
+                                          "Stage",
+                                          "Parking",
+                                          "Tent",
+                                          "Lighting"
+                                      ],
+                        "contact":  "+91 97666 55123 | hello@rahatnilawn.in",
+                        "website":  "https://rahatnilawn.in",
+                        "description":  "Flexible lawn venue for mid-sized events and evening celebrations in the western suburb belt.",
+                        "tags":  [
+                                     "outdoor",
+                                     "budget",
+                                     "garden"
+                                 ],
+                        "search_text":  "Rahatni Open Lawn located in Rahatni, Pune. Type: outdoor. Capacity: 220 guests. Cost: ₹47000 per day. Amenities: [\u0027Garden\u0027, \u0027Stage\u0027, \u0027Parking\u0027, \u0027Tent\u0027, \u0027Lighting\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "tech fest"
+                                         ],
+                        "vibe":  "Celebration / Outdoor Lawn"
+                    },
+                    {
+                        "id":  "V06",
+                        "name":  "Wakad Horizon Hall",
+                        "category":  "venues",
+                        "location":  "Pune",
+                        "locality":  "Wakad",
+                        "capacity":  260,
+                        "cost_per_day":  65000,
+                        "type":  "indoor",
+                        "rating":  4.5,
+                        "amenities":  [
+                                          "AC",
+                                          "Projector",
+                                          "Reception",
+                                          "Parking",
+                                          "Breakout Room"
+                                      ],
+                        "contact":  "+91 98220 71552 | info@wakadhorizon.in",
+                        "website":  "https://wakadhorizon.in",
+                        "description":  "Large hall near the industrial and residential belt, ideal for conferences and management meets.",
+                        "tags":  [
+                                     "conference",
+                                     "indoor",
+                                     "moderate"
+                                 ],
+                        "search_text":  "Wakad Horizon Hall located in Wakad, Pune. Type: indoor. Capacity: 260 guests. Cost: ₹65000 per day. Amenities: [\u0027AC\u0027, \u0027Projector\u0027, \u0027Reception\u0027, \u0027Parking\u0027, \u0027Breakout Room\u0027].",
+                        "suitable_for":  [
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Formal / Conference Hall"
+                    },
+                    {
+                        "id":  "V07",
+                        "name":  "Baner Grove",
+                        "category":  "venues",
+                        "location":  "Pune",
+                        "locality":  "Baner",
+                        "capacity":  300,
+                        "cost_per_day":  83000,
+                        "type":  "outdoor",
+                        "rating":  4.6,
+                        "amenities":  [
+                                          "Garden",
+                                          "Stage",
+                                          "Lighting",
+                                          "Parking",
+                                          "Food Court"
+                                      ],
+                        "contact":  "+91 98500 91024 | hello@banergrove.in",
+                        "website":  "https://banergrove.in",
+                        "description":  "Refined outdoor venue in Baner with a premium lawn and stage for social and corporate events.",
+                        "tags":  [
+                                     "outdoor",
+                                     "premium",
+                                     "garden"
+                                 ],
+                        "search_text":  "Baner Grove located in Baner, Pune. Type: outdoor. Capacity: 300 guests. Cost: ₹83000 per day. Amenities: [\u0027Garden\u0027, \u0027Stage\u0027, \u0027Lighting\u0027, \u0027Parking\u0027, \u0027Food Court\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering"
+                                         ],
+                        "vibe":  "Celebration / Premium Garden"
+                    },
+                    {
+                        "id":  "V08",
+                        "name":  "Hinjawadi Sky Deck",
+                        "category":  "venues",
+                        "location":  "Pune",
+                        "locality":  "Hinjawadi",
+                        "capacity":  180,
+                        "cost_per_day":  74000,
+                        "type":  "rooftop",
+                        "rating":  4.5,
+                        "amenities":  [
+                                          "Rooftop",
+                                          "Lighting",
+                                          "DJ Booth",
+                                          "Bar",
+                                          "Open Air"
+                                      ],
+                        "contact":  "+91 98926 11813 | venue@hinjawadiskydeck.in",
+                        "website":  "https://hinjawadiskydeck.in",
+                        "description":  "Rooftop venue for networking evenings, product reveals, and team appreciation programs.",
+                        "tags":  [
+                                     "rooftop",
+                                     "social",
+                                     "networking"
+                                 ],
+                        "search_text":  "Hinjawadi Sky Deck located in Hinjawadi, Pune. Type: rooftop. Capacity: 180 guests. Cost: ₹74000 per day. Amenities: [\u0027Rooftop\u0027, \u0027Lighting\u0027, \u0027DJ Booth\u0027, \u0027Bar\u0027, \u0027Open Air\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "tech fest"
+                                         ],
+                        "vibe":  "Vibrant / Rooftop Deck"
+                    },
+                    {
+                        "id":  "V09",
+                        "name":  "Koregaon Courtyard",
+                        "category":  "venues",
+                        "location":  "Pune",
+                        "locality":  "Koregaon Park",
+                        "capacity":  240,
+                        "cost_per_day":  96000,
+                        "type":  "outdoor",
+                        "rating":  4.7,
+                        "amenities":  [
+                                          "Garden",
+                                          "Tent",
+                                          "Stage",
+                                          "Catering",
+                                          "AC Lounge"
+                                      ],
+                        "contact":  "+91 98123 45012 | bookings@koregaoncourtyard.in",
+                        "website":  "https://koregaoncourtyard.in",
+                        "description":  "Stylish open-air venue with a premium indoor lounge for branded gatherings and evening socials.",
+                        "tags":  [
+                                     "premium",
+                                     "outdoor",
+                                     "social"
+                                 ],
+                        "search_text":  "Koregaon Courtyard located in Koregaon Park, Pune. Type: outdoor. Capacity: 240 guests. Cost: ₹96000 per day. Amenities: [\u0027Garden\u0027, \u0027Tent\u0027, \u0027Stage\u0027, \u0027Catering\u0027, \u0027AC Lounge\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "tech fest"
+                                         ],
+                        "vibe":  "Versatile / Courtyard with Indoor Lounge"
+                    },
+                    {
+                        "id":  "V10",
+                        "name":  "Pimple Saundarya",
+                        "category":  "venues",
+                        "location":  "Pune",
+                        "locality":  "Pimple Saudagar",
+                        "capacity":  140,
+                        "cost_per_day":  36000,
+                        "type":  "indoor",
+                        "rating":  4.2,
+                        "amenities":  [
+                                          "Conference Setup",
+                                          "Projector",
+                                          "Wedding Stage",
+                                          "AC",
+                                          "Lobby"
+                                      ],
+                        "contact":  "+91 90990 33411 | hello@pimplesaundarya.in",
+                        "website":  "https://pimplesaundarya.in",
+                        "description":  "Compact indoor venue with adaptable layouts for family functions and modest business events.",
+                        "tags":  [
+                                     "indoor",
+                                     "budget",
+                                     "celebration"
+                                 ],
+                        "search_text":  "Pimple Saundarya located in Pimple Saudagar, Pune. Type: indoor. Capacity: 140 guests. Cost: ₹36000 per day. Amenities: [\u0027Conference Setup\u0027, \u0027Projector\u0027, \u0027Wedding Stage\u0027, \u0027AC\u0027, \u0027Lobby\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering",
+                                             "conference"
+                                         ],
+                        "vibe":  "Versatile / Indoor Banquet"
+                    },
+                    {
+                        "id":  "V11",
+                        "name":  "Harbor Deck Mumbai",
+                        "category":  "venues",
+                        "location":  "Mumbai",
+                        "locality":  "Bandra",
+                        "capacity":  300,
+                        "cost_per_day":  110000,
+                        "type":  "rooftop",
+                        "rating":  4.8,
+                        "amenities":  [
+                                          "Sea View",
+                                          "Bar",
+                                          "Parking",
+                                          "Private Dining",
+                                          "Lighting"
+                                      ],
+                        "contact":  "+91 98200 98001 | venue@harbordock.in",
+                        "website":  "https://harbordock.in",
+                        "description":  "Premium rooftop venue with sea-facing views ideal for city networking and high-end social events.",
+                        "tags":  [
+                                     "rooftop",
+                                     "premium",
+                                     "mumbai"
+                                 ],
+                        "search_text":  "Harbor Deck Mumbai located in Bandra, Mumbai. Type: rooftop. Capacity: 300 guests. Cost: ₹110000 per day. Amenities: [\u0027Sea View\u0027, \u0027Bar\u0027, \u0027Parking\u0027, \u0027Private Dining\u0027, \u0027Lighting\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering"
+                                         ],
+                        "vibe":  "Celebration / Sea-view Rooftop"
+                    },
+                    {
+                        "id":  "V12",
+                        "name":  "Andheri Commons",
+                        "category":  "venues",
+                        "location":  "Mumbai",
+                        "locality":  "Andheri",
+                        "capacity":  420,
+                        "cost_per_day":  125000,
+                        "type":  "indoor",
+                        "rating":  4.6,
+                        "amenities":  [
+                                          "Acoustic Panels",
+                                          "Stage",
+                                          "AV",
+                                          "Parking",
+                                          "Green Room"
+                                      ],
+                        "contact":  "+91 99300 44577 | hello@andhericommons.in",
+                        "website":  "https://andhericommons.in",
+                        "description":  "Large indoor venue with integrated staging and AV for conferences, awards nights, and trade expos.",
+                        "tags":  [
+                                     "indoor",
+                                     "large",
+                                     "conference"
+                                 ],
+                        "search_text":  "Andheri Commons located in Andheri, Mumbai. Type: indoor. Capacity: 420 guests. Cost: ₹125000 per day. Amenities: [\u0027Acoustic Panels\u0027, \u0027Stage\u0027, \u0027AV\u0027, \u0027Parking\u0027, \u0027Green Room\u0027].",
+                        "suitable_for":  [
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Professional / AV Auditorium"
+                    },
+                    {
+                        "id":  "V13",
+                        "name":  "Powai Lawn",
+                        "category":  "venues",
+                        "location":  "Mumbai",
+                        "locality":  "Powai",
+                        "capacity":  520,
+                        "cost_per_day":  150000,
+                        "type":  "outdoor",
+                        "rating":  4.7,
+                        "amenities":  [
+                                          "Garden",
+                                          "Tent",
+                                          "Parking",
+                                          "Stage",
+                                          "Catering Setup"
+                                      ],
+                        "contact":  "+91 98980 66711 | bookings@powailawn.in",
+                        "website":  "https://powailawn.in",
+                        "description":  "Expansive outdoor venue with landscaped gardens and a covered event canopy for larger gatherings.",
+                        "tags":  [
+                                     "outdoor",
+                                     "garden",
+                                     "large"
+                                 ],
+                        "search_text":  "Powai Lawn located in Powai, Mumbai. Type: outdoor. Capacity: 520 guests. Cost: ₹150000 per day. Amenities: [\u0027Garden\u0027, \u0027Tent\u0027, \u0027Parking\u0027, \u0027Stage\u0027, \u0027Catering Setup\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Celebration / Covered Garden Lawn"
+                    },
+                    {
+                        "id":  "V14",
+                        "name":  "Thane Terrace",
+                        "category":  "venues",
+                        "location":  "Mumbai",
+                        "locality":  "Thane",
+                        "capacity":  220,
+                        "cost_per_day":  75000,
+                        "type":  "rooftop",
+                        "rating":  4.4,
+                        "amenities":  [
+                                          "Rooftop",
+                                          "Lighting",
+                                          "Open Air",
+                                          "Parking",
+                                          "Bar"
+                                      ],
+                        "contact":  "+91 98111 77014 | hello@thaneterrace.in",
+                        "website":  "https://thaneterrace.in",
+                        "description":  "Practical rooftop venue in Thane for group dinners, launches, and private parties.",
+                        "tags":  [
+                                     "rooftop",
+                                     "moderate",
+                                     "evening"
+                                 ],
+                        "search_text":  "Thane Terrace located in Thane, Mumbai. Type: rooftop. Capacity: 220 guests. Cost: ₹75000 per day. Amenities: [\u0027Rooftop\u0027, \u0027Lighting\u0027, \u0027Open Air\u0027, \u0027Parking\u0027, \u0027Bar\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering"
+                                         ],
+                        "vibe":  "Casual / Rooftop Terrace"
+                    },
+                    {
+                        "id":  "V15",
+                        "name":  "Connaught Atrium",
+                        "category":  "venues",
+                        "location":  "Delhi",
+                        "locality":  "Connaught Place",
+                        "capacity":  210,
+                        "cost_per_day":  98000,
+                        "type":  "indoor",
+                        "rating":  4.5,
+                        "amenities":  [
+                                          "Stage",
+                                          "Parking",
+                                          "Projector",
+                                          "AV",
+                                          "Backstage"
+                                      ],
+                        "contact":  "+91 98110 77880 | info@connaughtatrium.in",
+                        "website":  "https://connaughtatrium.in",
+                        "description":  "Central indoor venue for meetings, conferences, and evening networking events in central Delhi.",
+                        "tags":  [
+                                     "central",
+                                     "conference",
+                                     "indoor"
+                                 ],
+                        "search_text":  "Connaught Atrium located in Connaught Place, Delhi. Type: indoor. Capacity: 210 guests. Cost: ₹98000 per day. Amenities: [\u0027Stage\u0027, \u0027Parking\u0027, \u0027Projector\u0027, \u0027AV\u0027, \u0027Backstage\u0027].",
+                        "suitable_for":  [
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Formal / Central Conference Atrium"
+                    },
+                    {
+                        "id":  "V16",
+                        "name":  "Gurgaon Green Deck",
+                        "category":  "venues",
+                        "location":  "Delhi",
+                        "locality":  "Gurgaon",
+                        "capacity":  280,
+                        "cost_per_day":  105000,
+                        "type":  "rooftop",
+                        "rating":  4.7,
+                        "amenities":  [
+                                          "Rooftop",
+                                          "Lighting",
+                                          "Private Lounge",
+                                          "Parking",
+                                          "Catering"
+                                      ],
+                        "contact":  "+91 98181 88461 | sales@greendeckgurgaon.in",
+                        "website":  "https://greendeckgurgaon.in",
+                        "description":  "Premium rooftop venue with city views and a polished skyline presence for premium events.",
+                        "tags":  [
+                                     "rooftop",
+                                     "premium",
+                                     "gurgaon"
+                                 ],
+                        "search_text":  "Gurgaon Green Deck located in Gurgaon, Delhi. Type: rooftop. Capacity: 280 guests. Cost: ₹105000 per day. Amenities: [\u0027Rooftop\u0027, \u0027Lighting\u0027, \u0027Private Lounge\u0027, \u0027Parking\u0027, \u0027Catering\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering"
+                                         ],
+                        "vibe":  "Celebration / Executive Rooftop"
+                    },
+                    {
+                        "id":  "V17",
+                        "name":  "Noida Garden Court",
+                        "category":  "venues",
+                        "location":  "Delhi",
+                        "locality":  "Noida",
+                        "capacity":  480,
+                        "cost_per_day":  138000,
+                        "type":  "outdoor",
+                        "rating":  4.8,
+                        "amenities":  [
+                                          "Garden",
+                                          "Stage",
+                                          "Parking",
+                                          "Tent",
+                                          "Food Court"
+                                      ],
+                        "contact":  "+91 98711 66071 | hello@noidagardencourt.in",
+                        "website":  "https://noidagardencourt.in",
+                        "description":  "Large outdoor ceremony venue with elegant landscaping and capacity for major celebrations.",
+                        "tags":  [
+                                     "outdoor",
+                                     "garden",
+                                     "large"
+                                 ],
+                        "search_text":  "Noida Garden Court located in Noida, Delhi. Type: outdoor. Capacity: 480 guests. Cost: ₹138000 per day. Amenities: [\u0027Garden\u0027, \u0027Stage\u0027, \u0027Parking\u0027, \u0027Tent\u0027, \u0027Food Court\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "tech fest"
+                                         ],
+                        "vibe":  "Vibrant / High-capacity Garden"
+                    },
+                    {
+                        "id":  "V18",
+                        "name":  "Central Courtyard",
+                        "category":  "venues",
+                        "location":  "Delhi",
+                        "locality":  "Saket",
+                        "capacity":  190,
+                        "cost_per_day":  69000,
+                        "type":  "indoor",
+                        "rating":  4.4,
+                        "amenities":  [
+                                          "AC",
+                                          "Stage",
+                                          "Projector",
+                                          "Reception",
+                                          "Parking"
+                                      ],
+                        "contact":  "+91 98221 45690 | hello@centralcourtyard.in",
+                        "website":  "https://centralcourtyard.in",
+                        "description":  "Warm indoor venue with event-friendly flow and reliable logistics for smaller business events.",
+                        "tags":  [
+                                     "indoor",
+                                     "corporate",
+                                     "moderate"
+                                 ],
+                        "search_text":  "Central Courtyard located in Saket, Delhi. Type: indoor. Capacity: 190 guests. Cost: ₹69000 per day. Amenities: [\u0027AC\u0027, \u0027Stage\u0027, \u0027Projector\u0027, \u0027Reception\u0027, \u0027Parking\u0027].",
+                        "suitable_for":  [
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Professional / Indoor Event Hall"
+                    },
+                    {
+                        "id":  "C01",
+                        "name":  "Saffron \u0026 Spice Co.",
+                        "category":  "caterers",
+                        "location":  "Bengaluru",
+                        "locality":  "Koramangala",
+                        "capacity":  450,
+                        "cost_per_day":  220000,
+                        "type":  "multi_cuisine",
+                        "rating":  4.8,
+                        "amenities":  [
+                                          "Buffet",
+                                          "Plated Service",
+                                          "Live Counter",
+                                          "Vegetarian",
+                                          "Dietary Support"
+                                      ],
+                        "contact":  "+91 90011 33221 | sales@saffronspice.in",
+                        "website":  "https://saffronspice.in",
+                        "description":  "Premium catering partner with flexible menus for corporate launches and celebrations.",
+                        "tags":  [
+                                     "premium",
+                                     "buffet",
+                                     "corporate"
+                                 ],
+                        "search_text":  "Saffron \u0026 Spice Co. located in Koramangala, Bengaluru. Type: multi_cuisine. Capacity: 450 guests. Cost: ₹220000 per day. Amenities: [\u0027Buffet\u0027, \u0027Plated Service\u0027, \u0027Live Counter\u0027, \u0027Vegetarian\u0027, \u0027Dietary Support\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Versatile / Live stations and plated service",
+                        "menu_recommendations":  {
+                                                     "tech_fest":  "Quick box meals, beverage stations and all-day snack assortments",
+                                                     "birthday":  "Party bites, live chaat and pizza counters, mocktail bar",
+                                                     "corporate":  "Formal three-course corporate buffet with high-tea service"
+                                                 }
+                    },
+                    {
+                        "id":  "C02",
+                        "name":  "EATery Studio",
+                        "category":  "caterers",
+                        "location":  "Pune",
+                        "locality":  "Baner",
+                        "capacity":  300,
+                        "cost_per_day":  175000,
+                        "type":  "continental",
+                        "rating":  4.5,
+                        "amenities":  [
+                                          "Live Station",
+                                          "Cocktail Pairing",
+                                          "Dessert Bar",
+                                          "Veg/Non-Veg"
+                                      ],
+                        "contact":  "+91 98850 22211 | hello@eaterystudio.in",
+                        "website":  "https://eaterystudio.in",
+                        "description":  "Well-rated caterer offering modern menus, live stations, and elegant plating for mid-sized events.",
+                        "tags":  [
+                                     "modern",
+                                     "team event",
+                                     "baner"
+                                 ],
+                        "search_text":  "EATery Studio located in Baner, Pune. Type: continental. Capacity: 300 guests. Cost: ₹175000 per day. Amenities: [\u0027Live Station\u0027, \u0027Cocktail Pairing\u0027, \u0027Dessert Bar\u0027, \u0027Veg/Non-Veg\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Celebration / Live stations and dessert bar",
+                        "menu_recommendations":  {
+                                                     "tech_fest":  "Quick box meals, grab-and-go snacks and beverage stations",
+                                                     "birthday":  "Party finger food, live pizza and chaat counters, mocktail spread",
+                                                     "corporate":  "Executive lunch buffet with plated starters and high-tea"
+                                                 }
+                    },
+                    {
+                        "id":  "C03",
+                        "name":  "Gourmet Nest",
+                        "category":  "caterers",
+                        "location":  "Mumbai",
+                        "locality":  "Bandra",
+                        "capacity":  350,
+                        "cost_per_day":  210000,
+                        "type":  "healthy",
+                        "rating":  4.6,
+                        "amenities":  [
+                                          "Vegan",
+                                          "Gluten-Free",
+                                          "Custom Menu",
+                                          "High Protein",
+                                          "Desserts"
+                                      ],
+                        "contact":  "+91 98220 11334 | orders@gourmetnest.in",
+                        "website":  "https://gourmetnest.in",
+                        "description":  "Catering provider focused on wellness-friendly menus and polished presentation for premium social events.",
+                        "tags":  [
+                                     "healthy",
+                                     "premium",
+                                     "corporate"
+                                 ],
+                        "search_text":  "Gourmet Nest located in Bandra, Mumbai. Type: healthy. Capacity: 350 guests. Cost: ₹210000 per day. Amenities: [\u0027Vegan\u0027, \u0027Gluten-Free\u0027, \u0027Custom Menu\u0027, \u0027High Protein\u0027, \u0027Desserts\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Fresh / Wellness-focused custom menus",
+                        "menu_recommendations":  {
+                                                     "tech_fest":  "Quick balanced box meals, fruit, snacks and beverage station",
+                                                     "birthday":  "Shareable party plates, dessert bites and colorful mocktails",
+                                                     "corporate":  "Executive seasonal buffet with dietary-aware plated options"
+                                                 }
+                    },
+                    {
+                        "id":  "C04",
+                        "name":  "Royal Feast Co.",
+                        "category":  "caterers",
+                        "location":  "Delhi",
+                        "locality":  "Saket",
+                        "capacity":  550,
+                        "cost_per_day":  320000,
+                        "type":  "traditional",
+                        "rating":  4.9,
+                        "amenities":  [
+                                          "Traditional Menu",
+                                          "Live Cooking",
+                                          "Dessert Bar",
+                                          "Premium Service"
+                                      ],
+                        "contact":  "+91 98110 44556 | bookings@royalfeast.co",
+                        "website":  "https://royalfeast.co",
+                        "description":  "High-capacity event caterer with premium traditional Indian recipes and live food stations.",
+                        "tags":  [
+                                     "traditional",
+                                     "large",
+                                     "premium"
+                                 ],
+                        "search_text":  "Royal Feast Co. located in Saket, Delhi. Type: traditional. Capacity: 550 guests. Cost: ₹320000 per day. Amenities: [\u0027Traditional Menu\u0027, \u0027Live Cooking\u0027, \u0027Dessert Bar\u0027, \u0027Premium Service\u0027].",
+                        "suitable_for":  [
+                                             "birthday",
+                                             "private party",
+                                             "corporate gathering",
+                                             "leadership summit",
+                                             "conference",
+                                             "tech fest",
+                                             "hackathon"
+                                         ],
+                        "vibe":  "Traditional / Premium live cooking",
+                        "menu_recommendations":  {
+                                                     "tech_fest":  "Quick regional box meals, snack assortments and beverage station",
+                                                     "birthday":  "Celebration finger foods, live chaat counter and dessert bar",
+                                                     "corporate":  "Formal three-course Indian corporate buffet and high tea"
+                                                 }
+                    },
+                    {
+                        "id":  "A01",
+                        "name":  "SoundWave AV",
+                        "category":  "av_rentals",
+                        "location":  "Bengaluru",
+                        "locality":  "Koramangala",
+                        "capacity":  400,
+                        "cost_per_day":  75000,
+                        "type":  "audio_visual",
+                        "rating":  4.7,
+                        "amenities":  [
+                                          "LED Wall",
+                                          "Wireless Mic",
+                                          "Lighting Grid",
+                                          "Stage Audio",
+                                          "Projection"
+                                      ],
+                        "contact":  "+91 90330 77887 | sales@soundwaveav.in",
+                        "website":  "https://soundwaveav.in",
+                        "description":  "Audio-visual partner for live stage experiences, presentations, and product launches.",
+                        "tags":  [
+                                     "audio",
+                                     "lighting",
+                                     "stage"
+                                 ],
+                        "search_text":  "SoundWave AV located in Koramangala, Bengaluru. Type: audio_visual. Capacity: 400 guests. Cost: ₹75000 per day. Amenities: [\u0027LED Wall\u0027, \u0027Wireless Mic\u0027, \u0027Lighting Grid\u0027, \u0027Stage Audio\u0027, \u0027Projection\u0027]."
+                    },
+                    {
+                        "id":  "A02",
+                        "name":  "PixelPulse Tech",
+                        "category":  "av_rentals",
+                        "location":  "Pune",
+                        "locality":  "Baner",
+                        "capacity":  250,
+                        "cost_per_day":  46000,
+                        "type":  "presentation_kit",
+                        "rating":  4.4,
+                        "amenities":  [
+                                          "Projector",
+                                          "Screen",
+                                          "Streaming Kit",
+                                          "Hybrid Setup",
+                                          "Video Conferencing"
+                                      ],
+                        "contact":  "+91 98844 55663 | support@pixelpulsetech.in",
+                        "website":  "https://pixelpulsetech.in",
+                        "description":  "Steady AV support for hybrid meetings, presentation-centric events, and technical showcases.",
+                        "tags":  [
+                                     "projector",
+                                     "hybrid",
+                                     "conference"
+                                 ],
+                        "search_text":  "PixelPulse Tech located in Baner, Pune. Type: presentation_kit. Capacity: 250 guests. Cost: ₹46000 per day. Amenities: [\u0027Projector\u0027, \u0027Screen\u0027, \u0027Streaming Kit\u0027, \u0027Hybrid Setup\u0027, \u0027Video Conferencing\u0027]."
+                    },
+                    {
+                        "id":  "A03",
+                        "name":  "StageCraft Rentals",
+                        "category":  "av_rentals",
+                        "location":  "Mumbai",
+                        "locality":  "Andheri",
+                        "capacity":  600,
+                        "cost_per_day":  120000,
+                        "type":  "event_staging",
+                        "rating":  4.8,
+                        "amenities":  [
+                                          "Staging",
+                                          "Moving Lights",
+                                          "DJ Setup",
+                                          "Screens",
+                                          "Visuals"
+                                      ],
+                        "contact":  "+91 98666 77441 | hello@stagecraftrentals.in",
+                        "website":  "https://stagecraftrentals.in",
+                        "description":  "Large-format staging and lighting supplier for conference halls, festivals, and premium events.",
+                        "tags":  [
+                                     "staging",
+                                     "large",
+                                     "festival"
+                                 ],
+                        "search_text":  "StageCraft Rentals located in Andheri, Mumbai. Type: event_staging. Capacity: 600 guests. Cost: ₹120000 per day. Amenities: [\u0027Staging\u0027, \u0027Moving Lights\u0027, \u0027DJ Setup\u0027, \u0027Screens\u0027, \u0027Visuals\u0027]."
+                    },
+                    {
+                        "id":  "A04",
+                        "name":  "Spectrum Lights Delhi",
+                        "category":  "av_rentals",
+                        "location":  "Delhi",
+                        "locality":  "Dwarka",
+                        "capacity":  350,
+                        "cost_per_day":  90000,
+                        "type":  "audio_visual",
+                        "rating":  4.6,
+                        "amenities":  [
+                                          "LED Wall",
+                                          "Audio System",
+                                          "Stage Lights",
+                                          "Camera Support",
+                                          "Live Feed"
+                                      ],
+                        "contact":  "+91 98180 76001 | sales@spectrumlights.in",
+                        "website":  "https://spectrumlights.in",
+                        "description":  "AV and lighting service provider for product launches, conferences, and larger-stage performances.",
+                        "tags":  [
+                                     "audio",
+                                     "lighting",
+                                     "live"
+                                 ],
+                        "search_text":  "Spectrum Lights Delhi located in Dwarka, Delhi. Type: audio_visual. Capacity: 350 guests. Cost: ₹90000 per day. Amenities: [\u0027LED Wall\u0027, \u0027Audio System\u0027, \u0027Stage Lights\u0027, \u0027Camera Support\u0027, \u0027Live Feed\u0027]."
+                    }
+                ]
+}

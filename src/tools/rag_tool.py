@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import logging
 import re
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -28,8 +30,12 @@ except Exception:  # pragma: no cover - compatibility fallback
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG_PATH = PROJECT_ROOT / "data" / "vendor_catalog.json"
+SAMPLE_CATALOG_PATH = PROJECT_ROOT / "data" / "sample_vendor_catalog.json"
 DEFAULT_DB_PATH = PROJECT_ROOT / ".chroma"
 VALID_CATEGORIES = {"venues", "caterers", "av_rentals"}
+COLLECTION_NAME = "vendors"
+EMBEDDING_DIMENSIONS = 384
+logger = logging.getLogger(__name__)
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -206,13 +212,27 @@ def _normalise_vendor_record(raw_record: Dict[str, Any]) -> Optional[Dict[str, A
     return venue
 
 
+def _catalog_path(catalog_path: Optional[Path | str] = None) -> Path:
+    if catalog_path is not None:
+        return Path(catalog_path)
+    if DEFAULT_CATALOG_PATH.exists():
+        return DEFAULT_CATALOG_PATH
+    return SAMPLE_CATALOG_PATH
+
+
+def using_sample_catalog() -> bool:
+    """Return whether the private catalog is absent and sample data is available."""
+    return not DEFAULT_CATALOG_PATH.exists() and SAMPLE_CATALOG_PATH.exists()
+
+
 def load_vendor_catalog(catalog_path: Optional[Path | str] = None) -> List[Dict[str, Any]]:
     """Load and normalise the JSON vendor catalog."""
-    resolved_path = Path(catalog_path) if catalog_path is not None else DEFAULT_CATALOG_PATH
+    resolved_path = _catalog_path(catalog_path)
     if not resolved_path.exists():
-        if catalog_path is None:
-            return []
         raise FileNotFoundError(f"Vendor catalog not found at {resolved_path}")
+
+    if catalog_path is None and resolved_path == SAMPLE_CATALOG_PATH:
+        logger.warning("Private vendor catalog is missing; using fictional sample catalog at %s", resolved_path)
 
     with resolved_path.open("r", encoding="utf-8") as catalog_file:
         payload = json.load(catalog_file)
@@ -224,6 +244,199 @@ def load_vendor_catalog(catalog_path: Optional[Path | str] = None) -> List[Dict[
         if normalised is not None:
             vendors.append(normalised)
     return vendors
+
+
+def _flatten_text(value: Any) -> str:
+    if isinstance(value, dict):
+        return " ".join(f"{_flatten_text(key)} {_flatten_text(item)}" for key, item in value.items())
+    if isinstance(value, (list, tuple, set)):
+        return " ".join(_flatten_text(item) for item in value)
+    return str(value or "").strip()
+
+
+def _vendor_document(record: Dict[str, Any]) -> str:
+    fields = (
+        record.get("name", ""),
+        record.get("type", ""),
+        record.get("description", ""),
+        record.get("vibe", ""),
+        record.get("tags", []),
+        record.get("amenities", []),
+        record.get("suitable_for", []),
+        record.get("menu_recommendations", {}),
+    )
+    return " ".join(text for text in (_flatten_text(field) for field in fields) if text)
+
+
+def _local_embedding(text: str) -> List[float]:
+    """Create a deterministic, network-free feature-hashing vector for Chroma."""
+    tokens = _normalize_text(text).split()
+    if not tokens:
+        tokens = ["empty"]
+    features = tokens + [f"{left}_{right}" for left, right in zip(tokens, tokens[1:])]
+    vector = [0.0] * EMBEDDING_DIMENSIONS
+    for feature in features:
+        digest = hashlib.blake2b(feature.encode("utf-8"), digest_size=8).digest()
+        bucket = int.from_bytes(digest[:4], "little") % EMBEDDING_DIMENSIONS
+        sign = 1.0 if digest[4] & 1 else -1.0
+        vector[bucket] += sign
+    magnitude = sum(value * value for value in vector) ** 0.5
+    if magnitude:
+        vector = [value / magnitude for value in vector]
+    return vector
+
+
+def build_vector_index(
+    catalog_path: Optional[Path | str] = None,
+    db_dir: Path | str = DEFAULT_DB_PATH,
+) -> bool:
+    """Upsert every catalog record into a persistent Chroma ``vendors`` collection."""
+    if chromadb is None:
+        logger.warning("ChromaDB is unavailable; vector index was not built")
+        return False
+    try:
+        records = load_vendor_catalog(catalog_path)
+        client = chromadb.PersistentClient(
+            path=str(db_dir),
+            settings=chromadb.config.Settings(anonymized_telemetry=False),
+        )
+        collection = client.get_or_create_collection(name=COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
+        if not records:
+            logger.warning("Vendor catalog is empty; Chroma vector index was not built")
+            return False
+        collection.upsert(
+            ids=[str(record["id"]) for record in records],
+            documents=[_vendor_document(record) for record in records],
+            embeddings=[_local_embedding(_vendor_document(record)) for record in records],
+            metadatas=[
+                {
+                    "id": str(record["id"]),
+                    "category": str(record["category"]),
+                    "location": str(record["location"]).strip().lower(),
+                    "capacity": int(record["capacity"]),
+                    "cost_per_day": float(record["cost_per_day"]),
+                    "rating": float(record["rating"]),
+                    "_record_json": json.dumps(record, ensure_ascii=False),
+                }
+                for record in records
+            ],
+        )
+        return True
+    except Exception as exc:  # Chroma is optional at runtime; JSON ranking remains available.
+        logger.warning("Could not build Chroma vector index; using deterministic catalog search: %s", exc)
+        return False
+
+
+def semantic_search(
+    query: str,
+    category: str,
+    city: str,
+    attendee_count: Optional[int],
+    n_results: int = 10,
+    db_dir: Path | str = DEFAULT_DB_PATH,
+) -> List[Dict[str, Any]]:
+    """Search Chroma with mandatory exact city/category filters and optional capacity."""
+    if chromadb is None:
+        logger.warning("ChromaDB is unavailable; semantic search is disabled")
+        return []
+    try:
+        client = chromadb.PersistentClient(
+            path=str(db_dir),
+            settings=chromadb.config.Settings(anonymized_telemetry=False),
+        )
+        try:
+            collection = client.get_collection(name=COLLECTION_NAME)
+        except Exception:
+            collection = None
+        if collection is None or collection.count() == 0:
+            if not build_vector_index(db_dir=db_dir):
+                return []
+            collection = client.get_collection(name=COLLECTION_NAME)
+
+        clauses: List[Dict[str, Any]] = [
+            {"location": {"$eq": _normalize_text(city)}},
+            {"category": {"$eq": str(category).strip().lower()}},
+        ]
+        if attendee_count is not None:
+            clauses.append({"capacity": {"$gte": int(attendee_count)}})
+        where: Dict[str, Any] = {"$and": clauses}
+        matches = collection.query(
+            query_embeddings=[_local_embedding(query)],
+            n_results=max(1, int(n_results)),
+            where=where,
+            include=["metadatas", "documents", "distances"],
+        )
+        ids = (matches.get("ids") or [[]])[0]
+        metadatas = (matches.get("metadatas") or [[]])[0]
+        distances = (matches.get("distances") or [[]])[0]
+        records_by_id = {str(record["id"]): record for record in load_vendor_catalog()}
+        results: List[Dict[str, Any]] = []
+        for record_id, metadata, distance in zip(ids, metadatas, distances):
+            stored_record = metadata.get("_record_json") if isinstance(metadata, dict) else None
+            try:
+                record = json.loads(stored_record) if stored_record else records_by_id.get(str(record_id))
+            except (TypeError, json.JSONDecodeError):
+                record = records_by_id.get(str(record_id))
+            if record is None:
+                record = dict(metadata or {})
+            if _normalize_text(record.get("location", "")) != _normalize_text(city):
+                continue
+            if str(record.get("category", "")).strip().lower() != str(category).strip().lower():
+                continue
+            if attendee_count is not None and int(record.get("capacity") or 0) < int(attendee_count):
+                continue
+            result = dict(record)
+            result["similarity_distance"] = float(distance)
+            result["retrieval_method"] = "vector+rules"
+            results.append(result)
+        return results
+    except Exception as exc:  # Chroma may be unavailable/corrupt; search caller uses JSON fallback.
+        logger.warning("Chroma semantic search failed; falling back to deterministic catalog search: %s", exc)
+        return []
+
+
+def _hybrid_candidates(
+    records: List[Dict[str, Any]],
+    category: str,
+    location: str,
+    attendee_count: int,
+    event_type: str,
+    venue_style: Optional[str] = None,
+    allow_capacity_fallback: bool = False,
+) -> tuple[List[Dict[str, Any]], str]:
+    query = " ".join(
+        part for part in [event_type, venue_style or "", " ".join(sorted(OCCASION_SEMANTICS.get(_occasion_key(event_type), set())))] if part
+    )
+    vector_records = semantic_search(query, category, location, attendee_count, n_results=100, db_dir=DEFAULT_DB_PATH)
+    if not vector_records and allow_capacity_fallback:
+        vector_records = semantic_search(query, category, location, None, n_results=100, db_dir=DEFAULT_DB_PATH)
+    if vector_records:
+        by_id = {str(record["id"]): record for record in records}
+        candidates = [by_id[str(record["id"])] for record in vector_records if str(record.get("id")) in by_id]
+        distances = [float(record.get("similarity_distance", 0.0)) for record in vector_records]
+        for record in candidates:
+            matching = next((item for item in vector_records if str(item.get("id")) == str(record.get("id"))), {})
+            distance = float(matching.get("similarity_distance", 0.0))
+            record["_similarity_score"] = 1.0 / (1.0 + max(0.0, distance))
+        return candidates, "vector+rules"
+    return records, "rules-only"
+
+
+def _combined_rank_score(
+    record: Dict[str, Any],
+    event_type: str,
+    category: str,
+    attendee_count: int,
+    budget_limit: float,
+) -> float:
+    occasion_ceiling = 6 + len(OCCASION_SEMANTICS.get(_occasion_key(event_type), set()))
+    occasion_score = min(1.0, _occasion_score(record, event_type, category) / occasion_ceiling) if occasion_ceiling else 0.0
+    cost = float(record.get("cost_per_day") or 0.0)
+    budget_score = 1.0 / (1.0 + max(0.0, cost - budget_limit) / max(1.0, budget_limit))
+    capacity_score = 1.0 / (1.0 + abs(int(record.get("capacity") or 0) - attendee_count) / max(1, attendee_count))
+    rating_score = min(1.0, max(0.0, float(record.get("rating") or 0.0) / 5.0))
+    similarity_score = float(record.get("_similarity_score", 0.0) or 0.0)
+    return 0.42 * occasion_score + 0.20 * budget_score + 0.18 * capacity_score + 0.10 * rating_score + 0.10 * similarity_score
 
 
 def _location_matches(record: Dict[str, Any], target_location: str) -> bool:
@@ -322,7 +535,7 @@ def _occasion_label(event_type: str) -> str:
     }.get(profile, "Event-type match")
 
 
-def _base_vendor_result(record: Dict[str, Any], match_label: str, match_reason: str, is_dynamic_fallback: bool = False, display_note: Optional[str] = None) -> Dict[str, Any]:
+def _base_vendor_result(record: Dict[str, Any], match_label: str, match_reason: str, is_dynamic_fallback: bool = False, display_note: Optional[str] = None, retrieval_method: str = "rules-only") -> Dict[str, Any]:
     result = {
         "id": record.get("id"),
         "name": record.get("name"),
@@ -346,7 +559,10 @@ def _base_vendor_result(record: Dict[str, Any], match_label: str, match_reason: 
         "menu_recommendations": record.get("menu_recommendations", {}),
         "occasion_fit": match_label if not is_dynamic_fallback else "Versatile city fallback",
         "occasion_note": display_note,
+        "retrieval_method": retrieval_method,
     }
+    if "similarity_distance" in record:
+        result["similarity_distance"] = float(record["similarity_distance"])
     return result
 
 
@@ -371,7 +587,16 @@ def search_venues(location: str, max_venue_budget: float, attendee_count: int, v
     if target_location and not records:
         return []
 
-    capacity_fit = [record for record in records if int(record.get("capacity") or 0) >= target_attendance]
+    candidates, retrieval_method = _hybrid_candidates(
+        records,
+        "venues",
+        target_location,
+        target_attendance,
+        event_type,
+        venue_style,
+        allow_capacity_fallback=True,
+    )
+    capacity_fit = [record for record in candidates if int(record.get("capacity") or 0) >= target_attendance]
     occasion_fit = [record for record in capacity_fit if _occasion_score(record, event_type, "venues") >= 6]
     use_fallback = bool(event_type and _occasion_key(event_type) != "general" and not occasion_fit)
     candidates = occasion_fit or capacity_fit
@@ -383,13 +608,8 @@ def search_venues(location: str, max_venue_budget: float, attendee_count: int, v
         cost = float(record.get("cost_per_day") or 0.0)
         style_penalty = 0 if _style_matches(record, venue_style) else 1
         budget_penalty = max(0.0, cost - budget_limit)
-        return (
-            -_occasion_score(record, event_type, "venues"),
-            style_penalty,
-            budget_penalty,
-            abs(int(record.get("capacity") or 0) - target_attendance),
-            -float(record.get("rating") or 0.0),
-        )
+        rule_score = _combined_rank_score(record, event_type, "venues", target_attendance, budget_limit)
+        return (-rule_score, style_penalty, budget_penalty, _venue_sort_key(record, target_attendance, budget_limit))
 
     ranked: List[Dict[str, Any]] = []
     for record in sorted(candidates, key=ranking_key)[:limit]:
@@ -408,6 +628,7 @@ def search_venues(location: str, max_venue_budget: float, attendee_count: int, v
             match_reason=f"Ranked for {event_type or 'event type'}, city, capacity, style, and budget.",
             is_dynamic_fallback=is_fallback,
             display_note=adaptation_note,
+            retrieval_method=retrieval_method,
         )
         result["occasion_fit"] = occasion_label
         result["occasion_note"] = adaptation_note if is_fallback else None
@@ -431,18 +652,32 @@ def search_caterers(location: str, max_caterer_budget: float, attendee_count: in
     if target_location and not records:
         return []
 
-    candidates: List[Dict[str, Any]] = []
-    for record in records:
+    candidates, retrieval_method = _hybrid_candidates(
+        records,
+        "caterers",
+        target_location,
+        target_attendance,
+        event_type,
+    )
+    capacity_candidates: List[Dict[str, Any]] = []
+    for record in candidates:
         if int(record.get("capacity") or 0) < target_attendance:
             continue
         if _location_matches(record, target_location):
-            candidates.append(record)
+            capacity_candidates.append(record)
 
-    if not candidates:
+    if not capacity_candidates:
         return []
 
     profile = _occasion_key(event_type)
-    ordered = sorted(candidates, key=lambda item: (-_occasion_score(item, event_type, "caterers"), abs(float(item.get("cost_per_day") or 0.0) - budget_limit), -float(item.get("rating") or 0.0)))
+    ordered = sorted(
+        capacity_candidates,
+        key=lambda item: (
+            -_combined_rank_score(item, event_type, "caterers", target_attendance, budget_limit),
+            abs(float(item.get("cost_per_day") or 0.0) - budget_limit),
+            -float(item.get("rating") or 0.0),
+        ),
+    )
     ranked = []
     for record in ordered[:limit]:
         ranked.append(
@@ -451,6 +686,7 @@ def search_caterers(location: str, max_caterer_budget: float, attendee_count: in
                 match_label=_occasion_label(event_type),
                 match_reason=f"Menu recommendation tailored for {event_type or 'your event'} within the requested city.",
                 display_note=f"📍 {record.get('locality', '')}, {record.get('location', '')}".strip(", ") if record.get("location") else None,
+                retrieval_method=retrieval_method,
             )
         )
         menu_recommendations = record.get("menu_recommendations", {})
@@ -475,17 +711,31 @@ def search_av_rentals(location: str, max_av_budget: float, attendee_count: int, 
     if target_location and not records:
         return []
 
-    candidates: List[Dict[str, Any]] = []
-    for record in records:
+    candidates, retrieval_method = _hybrid_candidates(
+        records,
+        "av_rentals",
+        target_location,
+        target_attendance,
+        event_type,
+    )
+    capacity_candidates: List[Dict[str, Any]] = []
+    for record in candidates:
         if int(record.get("capacity") or 0) < target_attendance:
             continue
         if _location_matches(record, target_location):
-            candidates.append(record)
+            capacity_candidates.append(record)
 
-    if not candidates:
+    if not capacity_candidates:
         return []
 
-    ordered = sorted(candidates, key=lambda item: (-_occasion_score(item, event_type, "av_rentals"), abs(float(item.get("cost_per_day") or 0.0) - budget_limit), -float(item.get("rating") or 0.0)))
+    ordered = sorted(
+        capacity_candidates,
+        key=lambda item: (
+            -_combined_rank_score(item, event_type, "av_rentals", target_attendance, budget_limit),
+            abs(float(item.get("cost_per_day") or 0.0) - budget_limit),
+            -float(item.get("rating") or 0.0),
+        ),
+    )
     ranked = []
     for record in ordered[:limit]:
         ranked.append(
@@ -494,6 +744,7 @@ def search_av_rentals(location: str, max_av_budget: float, attendee_count: int, 
                 match_label="Best AV fit" if float(record.get("cost_per_day") or 0.0) <= budget_limit else "AV alternate",
                 match_reason="AV fit based on event scale and budget ceiling.",
                 display_note=f"📍 {record.get('locality', '')}, {record.get('location', '')}".strip(", ") if record.get("location") else None,
+                retrieval_method=retrieval_method,
             )
         )
     return ranked[:limit]

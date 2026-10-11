@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from src.crew import create_planwise_crew
+from src.tools.rag_tool import using_sample_catalog
 
 
 def _money(value: Any) -> str:
@@ -181,6 +182,7 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
                         st.write(f"{locality}, {city}")
                         st.badge(occasion_fit)
                         st.badge(comparison)
+                        st.caption(f"Retrieval: {venue.get('retrieval_method', 'rules-only')}")
                         st.write(f"**Vibe:** {vibe}")
                         if venue.get("occasion_note"):
                             st.caption(str(venue["occasion_note"]))
@@ -218,6 +220,7 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
                         st.subheader(caterer_name)
                         st.caption(f"{locality}, {city}")
                         st.badge(str(caterer.get("occasion_fit") or f"Tailored for {user_event_type}"))
+                        st.caption(f"Retrieval: {caterer.get('retrieval_method', 'rules-only')}")
                         st.write(f"**Recommended menu:** {menu_recommendation}")
                         st.write(f"**Vibe:** {caterer_vibe}")
                         st.write(f"**Cuisine:** {cuisine}")
@@ -239,6 +242,7 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
                     st.write(f"Daily rate: {_money(av_vendor.get('cost_per_day', 0.0))}")
                     st.write(f"Capacity: {av_vendor.get('capacity', 'N/A')} guests")
                     st.write(f"Type: {str(av_vendor.get('type', 'Unknown')).title()}")
+                    st.caption(f"Retrieval: {av_vendor.get('retrieval_method', 'rules-only')}")
                     st.write(f"Contact: {av_vendor.get('contact', 'Not provided')}")
                     st.link_button("Visit vendor website", _vendor_website(av_vendor, str(av_vendor.get("name", "AV vendor"))))
 
@@ -274,6 +278,8 @@ def render_app() -> None:
     st.set_page_config(page_title="PlanWise", page_icon="📋", layout="wide")
     st.title("PlanWise Event Planner")
     st.caption("Autonomous vendor, budget, and risk planning for corporate gatherings.")
+    if using_sample_catalog():
+        st.info("Using sample catalogue. Recommendations use fictional demo vendor data.")
 
     with st.form("planwise_form"):
         col1, col2 = st.columns(2)
