@@ -1,6 +1,6 @@
-# PlanWise-Agent
+PlanWise is an event-planning assistant for organizing corporate gatherings, birthdays, conferences, and student tech events. Enter the event type, location, expected attendance, budget, venue style, and weather forecast to receive a structured plan with budget allocations, city-specific venue and vendor recommendations, occasion-matched catering ideas, and weather-risk guidance.
 
-PlanWise is a Streamlit event-planning app with budget, occasion-aware vendor, and weather-risk recommendations. Vendor retrieval uses persistent ChromaDB vectors combined with deterministic city, capacity, occasion, and budget ranking.
+Built with Streamlit and CrewAI, PlanWise combines agent-based planning with deterministic tools for budget calculations, vendor filtering, and risk checks. It can run locally without an LLM provider using its offline planning flow. Vendor retrieval uses persistent ChromaDB vectors combined with deterministic city, capacity, occasion, and budget ranking.
 
 ## Run locally
 
@@ -12,7 +12,7 @@ python -m venv .venv
 
 ## Catalogue behavior
 
-The repository includes `data/vendor_catalog.json`, including each catalog record's contact and website fields. These details are catalog-provided examples and have not been independently verified; confirm vendor identity, contact information, pricing, and availability before relying on them for a real event. Do not add private credentials or personal contact information without permission.
+The repository includes `data/vendor_catalog.json`, including each catalog record's contact and website fields. These details are catalog-provided and have not been independently verified; confirm vendor identity, contact information, pricing, and availability before relying on them for a real event. Do not add private credentials or personal contact information without permission.
 
 PlanWise loads `data/vendor_catalog.json` when it exists. If that file is absent, the application automatically uses `data/sample_vendor_catalog.json`, which contains clearly fictional vendor names and contact details. The app displays a “Using sample catalogue” notice in this case. The sample data is suitable for demonstrations and tests, not real bookings.
 
