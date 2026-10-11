@@ -1,4 +1,4 @@
-# PlanWise
+# PlanWise-Agent
 
 PlanWise is a Streamlit event-planning app with budget, vendor, and weather-risk recommendations.
 
