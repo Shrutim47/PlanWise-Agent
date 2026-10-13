@@ -119,6 +119,10 @@ class PlanWiseCrew:
             "recommended_caterers": recommended_caterers,
             "recommended_av_vendors": recommended_av_vendors,
             "weather_risk": weather_status,
+            "event_date": payload.get("event_date"),
+            "weather_temperature_c": payload.get("weather_temperature_c"),
+            "rain_probability": payload.get("rain_probability"),
+            "weather_source": payload.get("weather_source", "Manual fallback"),
             "recommendation": (
                 f"Primary recommendation: {primary_recommendation}. Review the ranked venue options and the cost trade-offs before final approval."
             ),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any, Dict
 from urllib.parse import quote_plus
 
@@ -8,6 +9,7 @@ import streamlit as st
 
 from src.crew import create_planwise_crew
 from src.tools.rag_tool import using_sample_catalog
+from src.weather import get_weather_forecast
 
 
 def _money(value: Any) -> str:
@@ -79,20 +81,30 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
     food_warning = bool(budget_summary.get("food_budget_warning", False))
     user_location = str(result.get("preferred_location") or "Your location").strip() or "Your location"
     user_event_type = str(result.get("event_type") or "event").strip() or "event"
+    forecast_temperature = result.get("weather_temperature_c")
+    rain_probability = result.get("rain_probability")
 
     st.subheader("Recommended event plan")
-    metric_cols = st.columns(4)
+    metric_cols = st.columns(6)
     metric_cols[0].metric("Total Budget", _money(total_budget))
     metric_cols[1].metric("Estimated Attendance", f"{estimated_attendance} guests")
     metric_cols[2].metric("Per-Head Catering", _money(per_head_allowance))
+    metric_cols[3].metric(
+        "Forecast Temperature",
+        f"{float(forecast_temperature):.1f} °C" if forecast_temperature is not None else "N/A",
+    )
+    metric_cols[4].metric(
+        "Rain Probability",
+        f"{int(rain_probability)}%" if rain_probability is not None else "N/A",
+    )
 
     if weather_status == "WARNING":
-        metric_cols[3].markdown(
+        metric_cols[5].markdown(
             "<div style='background:#fff3cd; color:#856404; padding:10px; border-radius:8px; text-align:center; font-weight:600;'>⚠️ WEATHER RISK</div>",
             unsafe_allow_html=True,
         )
     else:
-        metric_cols[3].markdown(
+        metric_cols[5].markdown(
             "<div style='background:#d4edda; color:#155724; padding:10px; border-radius:8px; text-align:center; font-weight:600;'>✅ WEATHER OK</div>",
             unsafe_allow_html=True,
         )
@@ -108,6 +120,8 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
         st.write(f"**Event Name:** {result.get('event_name', 'N/A')}")
         st.write(f"**Event Type:** {result.get('event_type', 'N/A')}")
         st.write(f"**Target City:** {result.get('preferred_location', 'N/A')}")
+        st.write(f"**Event Date:** {result.get('event_date', 'N/A')}")
+        st.write(f"**Weather Source:** {result.get('weather_source', 'Manual fallback')}")
         st.write(f"**Recommendation:** {result.get('recommendation', 'No recommendation available.')}")
 
     with budget_tab:
@@ -300,6 +314,7 @@ def render_app() -> None:
                 ],
             )
             preferred_location = st.text_input("Preferred location", value="Bengaluru")
+            event_date = st.date_input("Event date", value=date.today())
         with col2:
             estimated_attendance = st.number_input("Estimated attendance", min_value=10, max_value=5000, value=180)
             total_budget = st.number_input("Total budget (₹)", min_value=50000, max_value=5000000, value=500000, step=50000)
@@ -307,7 +322,11 @@ def render_app() -> None:
                 "Venue style",
                 ["outdoor garden", "indoor hall", "terrace", "rooftop", "beach resort"],
             )
-        weather_forecast = st.text_input("Weather forecast", value="rain showers")
+        weather_forecast_fallback = st.text_input(
+            "Fallback weather description",
+            value="clear",
+            help="Used for the risk check if Open-Meteo cannot provide a forecast for the selected date.",
+        )
 
         submit = st.form_submit_button("Plan my event")
 
@@ -319,8 +338,19 @@ def render_app() -> None:
             estimated_attendance=estimated_attendance,
             total_budget=total_budget,
             venue_type=venue_type,
-            weather_forecast=weather_forecast,
+            weather_forecast=weather_forecast_fallback,
         )
+        payload["event_date"] = event_date.isoformat()
+
+        forecast = get_weather_forecast(preferred_location, event_date)
+        if forecast is not None:
+            payload["weather_forecast"] = forecast["summary"]
+            payload["weather_temperature_c"] = forecast["temperature_c"]
+            payload["rain_probability"] = forecast["rain_probability"]
+            payload["weather_source"] = forecast["source"]
+        else:
+            payload["weather_source"] = "Manual fallback"
+            st.warning("Forecast unavailable for this city/date. Using the fallback weather description for the risk check.")
 
         with st.spinner("Reviewing vendors, budget, and risk signals..."):
             result = run_event_plan(**payload)

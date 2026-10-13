@@ -1,4 +1,6 @@
 import json
+from datetime import date
+from unittest.mock import Mock
 
 import pytest
 
@@ -9,6 +11,7 @@ from src.tasks import build_event_tasks
 from src.tools import rag_tool
 from src.tools.budget_tool import calculate_budget_breakdown
 from src.tools.guardrails import check_weather_risk, verify_budget_ceiling, verify_venue_capacity
+from src import weather
 
 
 @pytest.fixture(autouse=True)
@@ -174,6 +177,56 @@ def test_weather_risk_outdoor_rain_and_safe_conditions():
     sunny_outdoor = check_weather_risk("outdoor lawn", "sunny")
     assert sunny_outdoor["status"] == "ok"
     assert sunny_outdoor["backup_required"] is False
+
+
+def test_open_meteo_forecast_returns_condition_temperature_and_rain(monkeypatch):
+    """A mocked geocode and daily forecast returns normalized weather fields."""
+    geocode_response = Mock()
+    geocode_response.json.return_value = {
+        "results": [{"name": "Pune", "latitude": 18.52, "longitude": 73.86}]
+    }
+    forecast_response = Mock()
+    forecast_response.json.return_value = {
+        "daily": {
+            "time": ["2026-10-14"],
+            "weather_code": [80],
+            "temperature_2m_max": [27.4],
+            "precipitation_probability_max": [65],
+        }
+    }
+    monkeypatch.setattr(weather.requests, "get", Mock(side_effect=[geocode_response, forecast_response]))
+
+    result = weather.get_weather_forecast("Pune", date(2026, 10, 14))
+
+    assert result == {
+        "summary": "rain showers",
+        "temperature_c": 27.4,
+        "rain_probability": 65,
+        "date": "2026-10-14",
+        "location_name": "Pune",
+        "source": "Open-Meteo",
+    }
+    assert forecast_response.raise_for_status.called
+
+
+def test_open_meteo_forecast_returns_none_when_date_is_out_of_range(monkeypatch):
+    """A forecast response without the requested date signals manual fallback."""
+    geocode_response = Mock()
+    geocode_response.json.return_value = {
+        "results": [{"name": "Pune", "latitude": 18.52, "longitude": 73.86}]
+    }
+    forecast_response = Mock()
+    forecast_response.json.return_value = {"daily": {"time": [], "weather_code": []}}
+    monkeypatch.setattr(weather.requests, "get", Mock(side_effect=[geocode_response, forecast_response]))
+
+    assert weather.get_weather_forecast("Pune", date(2035, 1, 1)) is None
+
+
+def test_open_meteo_timeout_returns_none_without_crashing(monkeypatch):
+    """Network timeouts are handled as unavailable forecasts for UI fallback."""
+    monkeypatch.setattr(weather.requests, "get", Mock(side_effect=weather.requests.Timeout("timed out")))
+
+    assert weather.get_weather_forecast("Pune", date(2026, 10, 14)) is None
 
 
 def test_city_isolation_for_all_search_categories():
