@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from src.crew import create_planwise_crew
-from src.tools.rag_tool import using_sample_catalog
+from src.tools.rag_tool import search_geoapify_vendors, using_sample_catalog
 from src.weather import get_weather_forecast
 
 
@@ -25,6 +25,12 @@ def _vendor_website(vendor: Dict[str, Any], fallback_terms: str) -> str:
     if website.startswith(("https://", "http://")):
         return website
     return f"https://www.google.com/search?q={quote_plus(fallback_terms)}"
+
+
+def _merge_live_vendors(catalog_vendors: list[Dict[str, Any]], live_vendors: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
+    live_ids = {str(vendor.get("id")) for vendor in live_vendors if vendor.get("id")}
+    catalog_remaining = [vendor for vendor in catalog_vendors if str(vendor.get("id")) not in live_ids]
+    return live_vendors + catalog_remaining
 
 
 def build_event_payload(
@@ -168,6 +174,7 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
             )
 
     with vendor_tab:
+        st.caption("Live place data, when available: © OpenStreetMap contributors via Geoapify.")
         if not recommended_venues:
             st.info(f"No venues exist in {user_location} yet in the catalog, so this view is intentionally showing no cross-city matches.")
         else:
@@ -177,22 +184,29 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
                     venue_name = str(venue.get("name") or "Venue recommendation")
                     locality = str(venue.get("locality") or venue.get("location") or "Unknown")
                     city = str(venue.get("location") or "Unknown")
-                    daily_rate = float(venue.get("cost_per_day", 0.0) or 0.0)
-                    capacity = int(venue.get("capacity") or 0)
+                    is_live = venue.get("source") == "geoapify"
+                    daily_rate = venue.get("cost_per_day")
+                    capacity = venue.get("capacity")
                     venue_type = str(venue.get("type") or "Unknown").title()
-                    rating = float(venue.get("rating", 0.0) or 0.0)
+                    rating = venue.get("rating")
                     amenities = venue.get("amenities", []) if isinstance(venue.get("amenities", []), list) else []
                     contact = str(venue.get("contact") or "Not provided")
                     match_label = str(venue.get("match_label") or "Recommended")
                     occasion_fit = str(venue.get("occasion_fit") or match_label)
                     vibe = str(venue.get("vibe") or "Versatile / Event-ready setup")
                     badge_text = f"📍 {locality}, {city}"
-                    comparison = "Under venue budget" if daily_rate <= venue_budget else "Above venue budget"
+                    comparison = (
+                        "Live listing · confirm pricing"
+                        if is_live
+                        else "Under venue budget" if float(daily_rate or 0.0) <= venue_budget else "Above venue budget"
+                    )
                     website = _vendor_website(venue, f"{venue_name} {locality}")
 
                     with st.container(border=True):
                         st.caption(badge_text)
                         st.subheader(venue_name)
+                        if is_live:
+                            st.caption("Live data (OpenStreetMap via Geoapify)")
                         st.write(f"{locality}, {city}")
                         st.badge(occasion_fit)
                         st.badge(comparison)
@@ -201,12 +215,20 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
                         if venue.get("occasion_note"):
                             st.caption(str(venue["occasion_note"]))
                         st.write(f"**Style:** {venue_type}")
-                        st.write(f"**Capacity:** {capacity} guests vs. target {estimated_attendance}")
-                        st.write(f"**Daily rate:** {_money(daily_rate)} vs. venue budget {_money(venue_budget)}")
-                        st.write(f"**Rating:** {rating:.1f} / 5")
+                        st.write(
+                            f"**Capacity:** {capacity} guests vs. target {estimated_attendance}"
+                            if capacity is not None
+                            else "**Capacity:** Check with vendor"
+                        )
+                        st.write(
+                            f"**Daily rate:** {_money(daily_rate)} vs. venue budget {_money(venue_budget)}"
+                            if daily_rate is not None
+                            else "**Daily rate:** Check with vendor"
+                        )
+                        st.write(f"**Rating:** {float(rating):.1f} / 5" if rating is not None else "**Rating:** Check with vendor")
                         st.write(f"**Amenities:** {', '.join(amenities[:4]) if amenities else 'Not listed'}")
                         st.write(f"**Contact:** {contact}")
-                        st.link_button("🌐 Visit Official Website", website)
+                        st.link_button("🌐 Visit Official Website" if venue.get("website") else "Search vendor online", website)
 
         if recommended_caterers:
             st.subheader("Recommended Caterers")
@@ -225,6 +247,7 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
                     amenities = caterer.get("amenities", [])
                     amenities = amenities if isinstance(amenities, list) else []
                     website = _vendor_website(caterer, f"{caterer_name} {locality}")
+                    is_live = caterer.get("source") == "geoapify"
                     menu_recommendation = str(
                         caterer.get("menu_recommendation") or f"Menu tailored for {user_event_type}"
                     )
@@ -232,19 +255,22 @@ def render_event_dashboard(result: Dict[str, Any]) -> None:
 
                     with st.container(border=True):
                         st.subheader(caterer_name)
+                        if is_live:
+                            st.caption("Live data (OpenStreetMap via Geoapify)")
                         st.caption(f"{locality}, {city}")
                         st.badge(str(caterer.get("occasion_fit") or f"Tailored for {user_event_type}"))
                         st.caption(f"Retrieval: {caterer.get('retrieval_method', 'rules-only')}")
                         st.write(f"**Recommended menu:** {menu_recommendation}")
                         st.write(f"**Vibe:** {caterer_vibe}")
                         st.write(f"**Cuisine:** {cuisine}")
-                        st.write(f"**Per-plate price:** {_money(per_plate_price)}")
+                        st.write("**Per-plate price:** Check with vendor" if is_live else f"**Per-plate price:** {_money(per_plate_price)}")
                         st.write(f"**Per-head budget:** {_money(per_head_allowance)}")
-                        st.write(f"**Estimated event rate:** {_money(event_rate)}")
-                        st.write(f"**Capacity:** {caterer.get('capacity', 'N/A')} guests")
+                        st.write("**Estimated event rate:** Check with vendor" if is_live else f"**Estimated event rate:** {_money(event_rate)}")
+                        capacity = caterer.get("capacity")
+                        st.write(f"**Capacity:** {capacity} guests" if capacity is not None else "**Capacity:** Check with vendor")
                         st.write(f"**Amenities:** {', '.join(amenities[:4]) if amenities else 'Not listed'}")
                         st.write(f"**Contact:** {caterer.get('contact', 'Not provided')}")
-                        st.link_button("🍽️ View Menu & Website", website)
+                        st.link_button("🍽️ View Menu & Website" if caterer.get("website") else "Search caterer online", website)
 
         if recommended_av_vendors:
             st.subheader("Recommended AV Vendors")
@@ -354,6 +380,23 @@ def render_app() -> None:
 
         with st.spinner("Reviewing vendors, budget, and risk signals..."):
             result = run_event_plan(**payload)
+
+        if isinstance(result, dict):
+            live_venues = search_geoapify_vendors("venues", preferred_location)
+            live_caterers = search_geoapify_vendors("caterers", preferred_location)
+            catalog_venues = result.get("recommended_venues", [])
+            catalog_caterers = result.get("recommended_caterers", [])
+            result["recommended_venues"] = _merge_live_vendors(
+                catalog_venues if isinstance(catalog_venues, list) else [], live_venues
+            )
+            result["recommended_caterers"] = _merge_live_vendors(
+                catalog_caterers if isinstance(catalog_caterers, list) else [], live_caterers
+            )
+            result["vendor_shortlist"] = (
+                result["recommended_venues"]
+                + result["recommended_caterers"]
+                + (result.get("recommended_av_vendors", []) if isinstance(result.get("recommended_av_vendors", []), list) else [])
+            )
 
         render_event_dashboard(result)
 

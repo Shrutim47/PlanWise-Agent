@@ -3,9 +3,14 @@ from __future__ import annotations
 import json
 import hashlib
 import logging
+import math
+import os
 import re
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
+
+import requests
+from dotenv import load_dotenv
 
 try:
     import chromadb
@@ -29,6 +34,7 @@ except Exception:  # pragma: no cover - compatibility fallback
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env")
 DEFAULT_CATALOG_PATH = PROJECT_ROOT / "data" / "vendor_catalog.json"
 SAMPLE_CATALOG_PATH = PROJECT_ROOT / "data" / "sample_vendor_catalog.json"
 DEFAULT_DB_PATH = PROJECT_ROOT / ".chroma"
@@ -36,6 +42,13 @@ VALID_CATEGORIES = {"venues", "caterers", "av_rentals"}
 COLLECTION_NAME = "vendors"
 EMBEDDING_DIMENSIONS = 384
 logger = logging.getLogger(__name__)
+GEOAPIFY_GEOCODING_URL = "https://api.geoapify.com/v1/geocode/search"
+GEOAPIFY_PLACES_URL = "https://api.geoapify.com/v2/places"
+GEOAPIFY_TIMEOUT_SECONDS = 5
+GEOAPIFY_CATEGORIES = {
+    "venues": "activity.community_center,activity.events_venue,entertainment,accommodation.hotel",
+    "caterers": "catering.restaurant",
+}
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -156,6 +169,142 @@ def _filter_records_by_city(records: List[Dict[str, Any]], location: str) -> Lis
     if not normalized:
         return list(records)
     return [record for record in records if _record_is_in_city(record, normalized)]
+
+
+def _geoapify_city_matches(city_value: str, address_value: str, requested_city: str) -> bool:
+    requested_aliases = _city_aliases(requested_city)
+    normalized_city = _normalize_text(city_value)
+    if normalized_city:
+        return normalized_city in requested_aliases or any(
+            alias in normalized_city for alias in requested_aliases if len(alias) > 3
+        )
+
+    normalized_address = f" {_normalize_text(address_value)} "
+    return any(f" {alias} " in normalized_address for alias in requested_aliases)
+
+
+def _haversine_distance_m(latitude: float, longitude: float, center_latitude: float, center_longitude: float) -> float:
+    earth_radius_m = 6_371_000
+    lat1 = math.radians(latitude)
+    lat2 = math.radians(center_latitude)
+    delta_lat = math.radians(center_latitude - latitude)
+    delta_lon = math.radians(center_longitude - longitude)
+    value = math.sin(delta_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(delta_lon / 2) ** 2
+    return earth_radius_m * 2 * math.atan2(math.sqrt(value), math.sqrt(max(0.0, 1.0 - value)))
+
+
+def search_geoapify_vendors(category: str, city: str, radius_m: int = 15000) -> List[Dict[str, Any]]:
+    """Search Geoapify Places for live venues or caterers, returning catalog-shaped records."""
+    category_key = str(category or "").strip().lower()
+    requested_city = str(city or "").strip()
+    category_ids = GEOAPIFY_CATEGORIES.get(category_key)
+    api_key = os.getenv("GEOAPIFY_API_KEY", "").strip()
+    if not category_ids or not requested_city or not api_key:
+        return []
+
+    try:
+        geocode_response = requests.get(
+            GEOAPIFY_GEOCODING_URL,
+            params={"text": f"{requested_city}, India", "format": "json", "apiKey": api_key},
+            timeout=GEOAPIFY_TIMEOUT_SECONDS,
+        )
+        geocode_response.raise_for_status()
+        geocode_results = geocode_response.json().get("results") or []
+        if not geocode_results:
+            return []
+        center = geocode_results[0]
+        center_latitude = float(center["lat"])
+        center_longitude = float(center["lon"])
+
+        places_response = requests.get(
+            GEOAPIFY_PLACES_URL,
+            params={
+                "categories": category_ids,
+                "filter": f"circle:{center_longitude},{center_latitude},{int(radius_m)}",
+                "bias": f"proximity:{center_longitude},{center_latitude}",
+                "limit": 10,
+                "apiKey": api_key,
+            },
+            timeout=GEOAPIFY_TIMEOUT_SECONDS,
+        )
+        places_response.raise_for_status()
+        features = places_response.json().get("features") or []
+        live_records: List[Dict[str, Any]] = []
+        for feature in features:
+            properties = feature.get("properties") or {}
+            formatted = str(properties.get("formatted") or "").strip()
+            result_city = str(properties.get("city") or "").strip()
+            if not _geoapify_city_matches(result_city, formatted, requested_city):
+                continue
+
+            geometry = feature.get("geometry") or {}
+            coordinates = geometry.get("coordinates") or []
+            try:
+                longitude = float(properties.get("lon", coordinates[0]))
+                latitude = float(properties.get("lat", coordinates[1]))
+            except (IndexError, TypeError, ValueError):
+                longitude = None
+                latitude = None
+            distance = (
+                _haversine_distance_m(latitude, longitude, center_latitude, center_longitude)
+                if latitude is not None and longitude is not None
+                else float("inf")
+            )
+            raw_categories = properties.get("categories") or []
+            if isinstance(raw_categories, str):
+                raw_categories = [raw_categories]
+            if category_key == "caterers":
+                catering_keywords = ("cater", "banquet", "event", "party", "buffet", "function", "wedding")
+                searchable_name = _normalize_text(
+                    " ".join(
+                        str(properties.get(field) or "")
+                        for field in ("name", "address_line1", "formatted")
+                    )
+                )
+                if not any(keyword in searchable_name for keyword in catering_keywords):
+                    continue
+            phone = str((properties.get("contact") or {}).get("phone") or properties.get("phone") or "").strip()
+            website = str(properties.get("website") or "").strip()
+            locality = formatted or str(properties.get("address_line1") or requested_city)
+            place_id = str(properties.get("place_id") or feature.get("id") or "")
+            live_records.append(
+                {
+                    "id": place_id,
+                    "name": str(properties.get("name") or properties.get("address_line1") or "Unnamed place"),
+                    "category": category_key,
+                    "location": result_city or requested_city,
+                    "locality": locality,
+                    "capacity": None,
+                    "cost_per_day": None,
+                    "type": ", ".join(str(item) for item in raw_categories),
+                    "rating": None,
+                    "amenities": raw_categories,
+                    "description": formatted,
+                    "tags": raw_categories,
+                    "search_text": formatted,
+                    "website": website,
+                    "contact": phone or "Not provided",
+                    "suitable_for": [],
+                    "vibe": "Live local listing",
+                    "menu_recommendations": {},
+                    "source": "geoapify",
+                    "distance_m": distance,
+                    "lat": latitude,
+                    "lon": longitude,
+                    "place_id": place_id,
+                }
+            )
+
+        live_records.sort(key=lambda record: (not bool(record["website"] or record["contact"] != "Not provided"), record["distance_m"]))
+        return live_records
+    except Exception as exc:
+        logger.warning(
+            "Geoapify search failed for %s in %s; catalog search will be used (%s)",
+            category_key,
+            requested_city,
+            type(exc).__name__,
+        )
+        return []
 
 
 def _str_or_default(value: Any, default: str = "N/A") -> str:

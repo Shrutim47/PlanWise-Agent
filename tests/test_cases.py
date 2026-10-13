@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from app import build_event_payload, run_event_plan
+from app import _merge_live_vendors, build_event_payload, run_event_plan
 from src.agents import build_budget_agent, build_planner_agent, build_vendor_agent
 from src.crew import PlanWiseCrew, create_planwise_crew
 from src.tasks import build_event_tasks
@@ -227,6 +227,137 @@ def test_open_meteo_timeout_returns_none_without_crashing(monkeypatch):
     monkeypatch.setattr(weather.requests, "get", Mock(side_effect=weather.requests.Timeout("timed out")))
 
     assert weather.get_weather_forecast("Pune", date(2026, 10, 14)) is None
+
+
+def test_geoapify_search_filters_city_maps_records_and_ranks(monkeypatch):
+    """Geoapify live listings are city-filtered, mapped, and ranked by contact then distance."""
+    monkeypatch.setenv("GEOAPIFY_API_KEY", "mock-geoapify-key")
+    geocode_response = Mock()
+    geocode_response.json.return_value = {"results": [{"lat": 18.52, "lon": 73.86}]}
+    places_response = Mock()
+    places_response.json.return_value = {
+        "features": [
+            {
+                "id": "near-no-contact",
+                "geometry": {"coordinates": [73.861, 18.521]},
+                "properties": {
+                    "name": "Nearby Hall",
+                    "formatted": "Nearby Hall, Pune, Maharashtra, India",
+                    "city": "Pune",
+                    "categories": ["activity.events_venue"],
+                    "lat": 18.521,
+                    "lon": 73.861,
+                    "place_id": "near-no-contact",
+                },
+            },
+            {
+                "id": "far-contact",
+                "geometry": {"coordinates": [73.90, 18.53]},
+                "properties": {
+                    "name": "Contactable Hall",
+                    "formatted": "Contactable Hall, Pune, Maharashtra, India",
+                    "city": "Pune",
+                    "website": "https://example.test/hall",
+                    "contact": {"phone": "+91-00000-00000"},
+                    "categories": ["activity.events_venue"],
+                    "lat": 18.53,
+                    "lon": 73.90,
+                    "place_id": "far-contact",
+                },
+            },
+            {
+                "id": "wrong-city",
+                "geometry": {"coordinates": [77.59, 12.97]},
+                "properties": {
+                    "name": "Bengaluru Hall",
+                    "formatted": "Bengaluru Hall, Bengaluru, Karnataka, India",
+                    "city": "Bengaluru",
+                    "categories": ["activity.events_venue"],
+                    "lat": 12.97,
+                    "lon": 77.59,
+                    "place_id": "wrong-city",
+                },
+            },
+        ]
+    }
+    get_mock = Mock(side_effect=[geocode_response, places_response])
+    monkeypatch.setattr(rag_tool.requests, "get", get_mock)
+
+    results = rag_tool.search_geoapify_vendors("venues", "Pune")
+
+    assert [record["place_id"] for record in results] == ["far-contact", "near-no-contact"]
+    assert all(record["location"] == "Pune" for record in results)
+    assert all(record["source"] == "geoapify" for record in results)
+    assert all(record[key] is None for record in results for key in ("capacity", "cost_per_day", "rating"))
+    assert results[0]["website"] == "https://example.test/hall"
+    assert results[0]["contact"] == "+91-00000-00000"
+    assert get_mock.call_args_list[0].kwargs["params"]["text"] == "Pune, India"
+    assert get_mock.call_args_list[1].kwargs["params"]["categories"] == rag_tool.GEOAPIFY_CATEGORIES["venues"]
+    assert all(call.kwargs["timeout"] == 5 for call in get_mock.call_args_list)
+
+
+def test_geoapify_missing_key_or_api_failure_returns_empty(monkeypatch):
+    """Missing credentials and request exceptions return empty for catalog fallback."""
+    monkeypatch.delenv("GEOAPIFY_API_KEY", raising=False)
+    request_mock = Mock(side_effect=AssertionError("network should not be called without a key"))
+    monkeypatch.setattr(rag_tool.requests, "get", request_mock)
+    assert rag_tool.search_geoapify_vendors("venues", "Pune") == []
+    request_mock.assert_not_called()
+
+    monkeypatch.setenv("GEOAPIFY_API_KEY", "mock-geoapify-key")
+    request_mock.side_effect = rag_tool.requests.Timeout("request timed out")
+    assert rag_tool.search_geoapify_vendors("caterers", "Pune") == []
+
+
+def test_geoapify_caterers_use_official_category_and_name_filter(monkeypatch):
+    """Caterer lookup uses Geoapify's verified restaurant category plus vendor keywords."""
+    monkeypatch.setenv("GEOAPIFY_API_KEY", "mock-geoapify-key")
+    geocode_response = Mock()
+    geocode_response.json.return_value = {"results": [{"lat": 18.52, "lon": 73.86}]}
+    places_response = Mock()
+    places_response.json.return_value = {
+        "features": [
+            {
+                "id": "caterer",
+                "geometry": {"coordinates": [73.86, 18.52]},
+                "properties": {
+                    "name": "Pune Event Catering Kitchen",
+                    "formatted": "Pune Event Catering Kitchen, Pune, India",
+                    "city": "Pune",
+                    "categories": ["catering.restaurant"],
+                    "place_id": "caterer",
+                },
+            },
+            {
+                "id": "restaurant",
+                "geometry": {"coordinates": [73.86, 18.52]},
+                "properties": {
+                    "name": "Pune Family Restaurant",
+                    "formatted": "Pune Family Restaurant, Pune, India",
+                    "city": "Pune",
+                    "categories": ["catering.restaurant"],
+                    "place_id": "restaurant",
+                },
+            },
+        ]
+    }
+    get_mock = Mock(side_effect=[geocode_response, places_response])
+    monkeypatch.setattr(rag_tool.requests, "get", get_mock)
+
+    results = rag_tool.search_geoapify_vendors("caterers", "Pune")
+
+    assert [record["place_id"] for record in results] == ["caterer"]
+    assert get_mock.call_args_list[1].kwargs["params"]["categories"] == "catering.restaurant"
+
+
+def test_live_vendor_merge_keeps_catalog_as_fallback():
+    """Live results rank first while unrelated catalog alternatives remain available."""
+    catalog = [{"id": "duplicate", "name": "Catalog duplicate"}, {"id": "catalog-only", "name": "Catalog choice"}]
+    live = [{"id": "duplicate", "name": "Live choice", "source": "geoapify"}]
+
+    merged = _merge_live_vendors(catalog, live)
+
+    assert [record["name"] for record in merged] == ["Live choice", "Catalog choice"]
 
 
 def test_city_isolation_for_all_search_categories():
